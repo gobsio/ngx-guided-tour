@@ -1,0 +1,63 @@
+<div *ngIf="currentTourStep">
+  <div class="guided-tour-user-input-mask" (click)="backdropClick($event)"></div>
+  <div class="guided-tour-spotlight-overlay" [style.top.px]="overlay.top" [style.left.px]="overlay.left"
+    [style.height.px]="overlay.height" [style.width.px]="overlay.width">
+  </div>
+</div>
+
+<div *ngIf="currentTourStep">
+  <div #tourStep *ngIf="currentTourStep" class="tour-step tour-{{ currentTourStep.orientation }}"
+    [ngClass]="{  'page-tour-step': !currentTourStep.selector }" [style.top.px]="dialog.top"
+    [style.left.px]="dialog.left"
+    [style.width.px]="(currentTourStep.selector && selectedElementRect ? calculatedTourStepWidth : null)"
+    [style.transform]="(currentTourStep.selector && selectedElementRect ? transform : null)">
+
+
+    <!-- This is the pointer to the components referenced. -->
+    <div *ngIf="currentTourStep.selector" class="tour-arrow"></div>
+
+    <div class="tour-block">
+      <div class="tour-header">
+
+        <!-- Header - Steps Progress / Actions -->
+        <div class="tour-header-actions">
+          <progress [value]="guidedTourService.currentTourStepDisplay"
+            [max]="guidedTourService.currentTourStepCount"></progress>
+
+          <span (click)="guidedTourService.skipTour()" class="tour-header-close">
+            <!-- &#10005; -->
+            ×
+          </span>
+        </div>
+
+        <!-- Tour Title -->
+        <h3 class="tour-title" *ngIf="currentTourStep.title && currentTourStep.selector">
+          {{ currentTourStep.title }}
+        </h3>
+        <h2 class="tour-title" *ngIf="currentTourStep.title && !currentTourStep.selector">
+          {{ currentTourStep.title }}
+        </h2>
+      </div>
+
+      <div class="tour-content" [innerHTML]="currentTourStep.content"></div>
+
+      <div class="tour-footer">
+        <div class="tour-progress">
+          <span>
+            {{ guidedTourService.currentTourStepDisplay }} / {{ guidedTourService.currentTourStepCount }}
+          </span>
+        </div>
+        <div class="tour-actions">
+          <button *ngIf="!guidedTourService.onFirstStep && !guidedTourService.onResizeMessage"
+            (click)="guidedTourService.backStep()" class="prev-button">
+            {{ backText }}
+          </button>
+          <button (click)="guidedTourService.nextStep()" class="next-button">
+            <span *ngIf="!guidedTourService.onLastStep">{{ nextText }}</span>
+            <span *ngIf="guidedTourService.onLastStep">{{ doneText }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
