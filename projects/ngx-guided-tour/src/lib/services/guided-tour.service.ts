@@ -14,6 +14,9 @@ export class GuidedTourService {
   public guidedTourCurrentStepStream: Observable<GuidedTourStep>;
   public guidedTourOrbShowingStream: Observable<boolean>;
 
+  public afterTourInit = new Subject();
+  public afterTourEnd = new Subject();
+
   private _guidedTourCurrentStepSubject = new Subject<GuidedTourStep>();
   private _guidedTourOrbShowingSubject = new Subject<boolean>();
   private _currentTourStepIndex = 0;
@@ -21,6 +24,11 @@ export class GuidedTourService {
   private _onFirstStep = true;
   private _onLastStep = true;
   private _onResizeMessage = false;
+  private _previousState: boolean;
+  private _observer: MutationObserver;
+
+  private readonly TOUR_START_CLASS = 'tour-open';
+
 
   constructor(
     public errorHandler: ErrorHandler,
@@ -46,6 +54,7 @@ export class GuidedTourService {
         }
       }
     });
+    this._setObserver();
   }
 
   public nextStep(): void {
@@ -116,13 +125,19 @@ export class GuidedTourService {
   }
 
   public resetTour(): void {
-    this.dom.body.classList.remove('tour-open');
+    this.dom.body.classList.remove(this.TOUR_START_CLASS);
     this._currentTour = null;
     this._currentTourStepIndex = 0;
     this._guidedTourCurrentStepSubject.next(null);
   }
 
   public startTour(tour: GuidedTour): void {
+    const subscription = this.afterTourEnd.subscribe(() => {
+      this._observer.disconnect();
+      subscription.unsubscribe();
+    });
+    this._observe();
+
     this._currentTour = cloneDeep(tour);
     this._currentTour.steps = this._currentTour.steps.filter(step => !step.skipStep);
     this._currentTourStepIndex = 0;
@@ -134,7 +149,7 @@ export class GuidedTourService {
         || (this.windowRef.nativeWindow.innerWidth >= this._currentTour.minimumScreenSize))
     ) {
       if (!this._currentTour.useOrb) {
-        this.dom.body.classList.add('tour-open');
+        this.dom.body.classList.add(this.TOUR_START_CLASS);
       }
       if (this._currentTour.steps[this._currentTourStepIndex].action) {
         this._currentTour.steps[this._currentTourStepIndex].action();
@@ -149,7 +164,7 @@ export class GuidedTourService {
 
   public activateOrb(): void {
     this._guidedTourOrbShowingSubject.next(false);
-    this.dom.body.classList.add('tour-open');
+    this.dom.body.classList.add(this.TOUR_START_CLASS);
   }
 
   private _setFirstAndLast(): void {
@@ -228,5 +243,30 @@ export class GuidedTourService {
       convertedStep.orientation = currentOrientation;
     }
     return convertedStep;
+  }
+
+  private _setObserver(): void {
+    const elemToObserve = this.dom.body;
+    this._previousState = elemToObserve.classList.contains(this.TOUR_START_CLASS);
+    this._observer = new MutationObserver((mutations) => {
+      mutations.forEach((mutation) => {
+        if (mutation.attributeName === 'class') {
+          const target: any = mutation.target;
+          const currentState = target.classList && target.classList.contains(this.TOUR_START_CLASS);
+          if (this._previousState !== currentState) {
+            this._previousState = currentState;
+            if (currentState) {
+              this.afterTourInit.next();
+            } else {
+              this.afterTourEnd.next();
+            }
+          }
+        }
+      });
+    });
+  }
+
+  private _observe(): void {
+    this._observer.observe(this.dom.body, { attributes: true });
   }
 }
