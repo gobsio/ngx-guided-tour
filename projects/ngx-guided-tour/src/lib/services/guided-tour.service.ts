@@ -9,7 +9,7 @@ import { GuidedTourStep } from '../constants/guided-tour-step.model';
 import { GuidedTour } from '../constants/guided-tour.model';
 import { OrientationConfiguration, Orientation } from '../constants/guided-tour-orientation.model';
 
-@Injectable()
+@Injectable({ providedIn: 'root' })
 export class GuidedTourService {
   public guidedTourCurrentStepStream: Observable<GuidedTourStep>;
   public guidedTourOrbShowingStream: Observable<boolean>;
