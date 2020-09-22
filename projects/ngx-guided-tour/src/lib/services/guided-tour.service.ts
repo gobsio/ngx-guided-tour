@@ -15,7 +15,7 @@ export class GuidedTourService {
   public guidedTourOrbShowingStream: Observable<boolean>;
 
   public afterTourInit = new Subject();
-  public afterTourEnd = new Subject();
+  public afterTourEnded = new Subject();
 
   private _guidedTourCurrentStepSubject = new Subject<GuidedTourStep>();
   private _guidedTourOrbShowingSubject = new Subject<boolean>();
@@ -132,7 +132,7 @@ export class GuidedTourService {
   }
 
   public startTour(tour: GuidedTour): void {
-    const subscription = this.afterTourEnd.subscribe(() => {
+    const subscription = this.afterTourEnded.subscribe(() => {
       this._observer.disconnect();
       subscription.unsubscribe();
     });
@@ -258,7 +258,7 @@ export class GuidedTourService {
             if (currentState) {
               this.afterTourInit.next();
             } else {
-              this.afterTourEnd.next();
+              this.afterTourEnded.next();
             }
           }
         }
