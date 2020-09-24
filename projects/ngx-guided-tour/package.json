@@ -1,6 +1,6 @@
 {
-  "name": "ngx-guided-tour",
-  "version": "0.0.1",
+  "name": "@gobsio/ngx-guided-tour",
+  "version": "0.0.5",
   "peerDependencies": {
     "@angular/common": "^10.0.14",
     "@angular/core": "^10.0.14"
